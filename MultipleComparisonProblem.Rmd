@@ -1,0 +1,38 @@
+---
+title: "Multilevel Modeling Solves Multiple Comparison Problem"
+output:
+prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+---
+
+WAITING on request for data
+https://www.r-bloggers.com/analyzing-accupedo-step-count-data-in-r/
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+
+setwd("~/GitHub/Statistics")
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+if(!require(easypackages)){install.packages("easypackages")}
+library(easypackages)
+packages("plyr", "dplyr", "ggplot2", prompt = FALSE)
+```
+
+# Introduction
+
+Multiple comparisons of group-level means is a tricky problem in statistical inference. A standard practice is to adjust the threshold for statistical significance according to the number of pairwise tests performed. For example, according to the widely-known [Bonferonni method](https://en.wikipedia.org/wiki/Bonferroni_correction), if we have 3 different groups for which we want to compare the means of a given variable, we would divide the standard significance level (.05 by convention) by the number of tests performed (3 in this case), and only conclude that a given comparison is statistically significant if its p-value falls below .017 (e.g. .05/3).
+
+In this post, we will use a multi-level model to examine pairwise comparisons of group means. In this method, use the results of a model built with all the available data to draw simulations for each group from the posterior distribution estimated from our model. We use these simulations to compare group means, without resorting to the expensive corrections typical of standard multiple comparison analyses (e.g. the Bonferroni method referenced above).
+
+# Data
+
+Use data source containing walking data from a phone app. Accupedo is a free step-counting app is used to track how many steps walked each day. 
+
+In the data used for this post, I exclude all measurements taken before 6 AM (because the step counts are cumulative we don't lose any steps by excluding these observations). This results in 18,117 observations of cumulative hourly step counts for 1113 days. The first observation is on 3 March 2015 and the last on 22 March 2018, resulting in just over 3 years of data!
+
+A sample of the dataset, called aggregate_day_hour, is shown below: 
